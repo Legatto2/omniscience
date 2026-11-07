@@ -13,6 +13,7 @@ class Locator:
     def is_enabled(self): return self.valid
     def is_editable(self): return self.valid
     def evaluate(self, expression): return self.valid
+    def get_attribute(self, name): return "q"
     def fill(self, query, timeout): self.page.query = query
     def press(self, key, timeout): self.page.actions += 1
 
@@ -56,6 +57,8 @@ class PhaseOneTests(unittest.TestCase):
     def test_url_query_must_match(self):
         self.assertFalse(query_in_url('https://example.test/?q=other','term'))
         self.assertTrue(query_in_url('https://example.test/?q=red+shoes','red shoes'))
+        self.assertFalse(query_in_url('https://example.test/?tracking=term','term'))
+        self.assertTrue(query_in_url('https://example.test/?custom=term','term','custom'))
     def test_vision_opt_in_and_validation(self):
         p=Page({}); p.mapping['a']=Locator(p)
         calls=[]
