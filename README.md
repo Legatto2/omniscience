@@ -1,4 +1,18 @@
-# Omniscience
+<div align="center">
+
+<img src="docs/images/omniscience-hero.webp" alt="Abstract eye made of connected nodes and browser windows" width="100%">
+
+# OMNISCIENCE
+
+**Perceive. Remember. Act. Verify.**
+
+*An experimental browser agent exploring adaptive procedural memory.*
+
+[The idea](#the-research-question) · [How it works](#how-it-works) · [See the demo](#a-glimpse-of-the-demo) · [Run the checks](#setup-and-offline-checks)
+
+</div>
+
+---
 
 Omniscience is an experimental browser agent and research project exploring how an AI system can **perceive an interface, remember successful procedures, and verify the results of its actions**. Its long-term aim is to make repeated digital tasks more reliable and adaptable by combining procedural memory with semantic understanding and carefully bounded model-assisted recovery.
 
@@ -12,6 +26,33 @@ Omniscience explores a two-path approach:
 - **Unfamiliar or changed interfaces:** discover targets through browser semantics and, where explicitly enabled, accept a proposal from a vision provider. Proposed actions still need validation and outcome confirmation.
 
 The broader direction includes a persistent representation of interface objects and state, and experiments with predicting outcomes before actions. These are research goals, not capabilities demonstrated by the current code. Omniscience does not claim human-like understanding or a proven advantage over other agents.
+
+
+## How it works
+
+```mermaid
+flowchart LR
+    A["Search intent"] --> B{"Known habit?"}
+    B -- Yes --> C["Validate cached target"]
+    B -- No --> D["Discover a semantic target"]
+    C -- Stale or invalid --> D
+    D -- No valid target --> V["Optional provider proposal"]
+    D --> E["Validate target"]
+    V --> E
+    C -- Valid --> F["Submit search"]
+    E --> F
+    F --> G{"Outcome confirmed?"}
+    G -- Yes --> H["Save verified habit"]
+    G -- No --> I["Report unconfirmed"]
+```
+
+This diagram describes the current search path. Vision is an optional provider interface; proposals are validated using the same search checks. An unconfirmed submission is not retried automatically.
+
+## A glimpse of the demo
+
+![Results page from a recorded run of the original Project Synapse demo](docs/images/legacy-demo-results.webp)
+
+*Historical demo footage: the original demo reached a results page for “Gladiator 2.” This is a single observed run of the legacy demo, not a benchmark or validation of the current verified workflow.*
 
 ## Current status
 
@@ -27,7 +68,14 @@ Evaluation should compare familiar-task reuse, first-time discovery, and recover
 
 Python 3.11 and Playwright for Python are required for the live agent. Install `playwright` and its Chromium browser using the official Playwright instructions. `google-generativeai` is optional for the existing Gemini ambient extraction; without it the heuristic remains available. No dependency lock was provided upstream; versions have not been validated here.
 
-Run `python -m unittest discover -s tests -v` and `python tests/benchmark_offline.py`. On systems where the default temporary directory is unwritable, set `TEMP` and `TMP` to a writable directory. The unit tests use simulated pages. Run `python tests/browser_fixture.py` and `python tests/browser_regression.py` for intercepted local Chromium fixtures; they require an installed Playwright browser.
+Run the offline checks from the repository root:
+
+```bash
+python -m unittest discover -s tests -v
+python tests/benchmark_offline.py
+```
+
+ On systems where the default temporary directory is unwritable, set `TEMP` and `TMP` to a writable directory. The unit tests use simulated pages. Run `python tests/browser_fixture.py` and `python tests/browser_regression.py` for intercepted local Chromium fixtures; they require an installed Playwright browser.
 
 ## Search and memory
 
