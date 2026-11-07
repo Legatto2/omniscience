@@ -54,4 +54,3 @@ def main():
     print(json.dumps({'fixture': 'intercepted-browser-v1', 'trials_per_case': 1, 'reported_success': results}, indent=2))
 
 if __name__ == '__main__': main()
-

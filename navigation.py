@@ -57,4 +57,3 @@ def execute_search(page, selectors, query, timeout_ms=3000, fallback=None):
         if isinstance(proposed, str) and proposed:
             return execute_search(page, [proposed], query, timeout_ms)
     return None
-
