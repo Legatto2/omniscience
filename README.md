@@ -4,21 +4,39 @@
 
 # OMNISCIENCE
 
-**Perceive. Remember. Act. Verify.**
+**See. Hear. Speak. Remember. Act.**
 
-*An experimental browser agent exploring adaptive procedural memory.*
+*Toward an AI companion that understands context and acts with purpose.*
 
-[The idea](#the-research-question) · [How it works](#how-it-works) · [See the demo](#a-glimpse-of-the-demo) · [Run the checks](#setup-and-offline-checks)
+[The vision](#the-grand-vision) · [The research](#the-research-question) · [Prototype](#how-the-prototype-works) · [See the demo](#a-glimpse-of-the-demo) · [Run the checks](#setup-and-offline-checks)
 
 </div>
 
 ---
 
-Omniscience is an experimental browser agent and research project exploring how an AI system can **perceive an interface, remember successful procedures, and verify the results of its actions**. Its long-term aim is to make repeated digital tasks more reliable and adaptable by combining procedural memory with semantic understanding and carefully bounded model-assisted recovery.
+Omniscience is an experimental AI research project exploring a more capable digital companion: one that can perceive its surroundings, carry context forward, communicate naturally, and help people act in the digital world. The browser agent is our first research environment and the foundation for testing that larger idea.
+
+## The grand vision
+
+Imagine mentioning a book in conversation, then later saying, “Find that book we talked about.” An assistant could recall the conversation, check current information from an authorized source, search for the right title, and explain what it found. Over time, it could also learn which steps reliably complete familiar tasks.
+
+The long-term goal is to bring these abilities together:
+
+- **See:** understand screens and, eventually, visual surroundings; track relevant objects and changes over time.
+- **Hear:** learn useful context from ambient speech when listening is explicitly enabled, so the assistant can understand references made later.
+- **Speak:** communicate naturally, ask when context is uncertain, and explain what it has done.
+- **Remember:** maintain personal context and reusable procedures, alongside world knowledge refreshed from authorized data sources—including potential Google integrations where access is available.
+- **Act and verify:** use that context to help with tasks, check outcomes, learn from experience, and seek approval for consequential actions.
+
+“See, hear, and speak like we do” expresses the intended experience; it is not a claim that the system has human perception, understanding, or consciousness. Continuously updating memory is also distinct from retraining a model: the intended system may retrieve and revise information without changing model weights.
+
+Ambient listening and external data access require explicit user control, clear recording indicators, appropriate treatment of bystanders, and transparent choices about storage, deletion, and sharing. Sources need provenance, freshness, and access controls; the project does not assume unrestricted access to Google's proprietary data. These are design requirements for future work, not guarantees of the current prototype.
+
+> **Research vision, not a product claim:** Live microphone capture, spoken interaction, continuously refreshed external knowledge, and a persistent visual state model are not implemented in this repository today.
 
 ## The research question
 
-Can an agent learn a browser task, reuse a verified procedure on later attempts, and recover when an interface changes—while measuring task completion, latency, model use, and failure modes?
+Can an agent combine personal context, current knowledge, and learned procedures to carry out useful tasks reliably—and know when its memory or understanding is uncertain? Our first measurable step is to test verified browser-task reuse and recovery as interfaces change.
 
 Omniscience explores a two-path approach:
 
@@ -28,7 +46,7 @@ Omniscience explores a two-path approach:
 The broader direction includes a persistent representation of interface objects and state, and experiments with predicting outcomes before actions. These are research goals, not capabilities demonstrated by the current code. Omniscience does not claim human-like understanding or a proven advantage over other agents.
 
 
-## How it works
+## How the prototype works
 
 ```mermaid
 flowchart LR
@@ -75,7 +93,7 @@ python -m unittest discover -s tests -v
 python tests/benchmark_offline.py
 ```
 
- On systems where the default temporary directory is unwritable, set `TEMP` and `TMP` to a writable directory. The unit tests use simulated pages. Run `python tests/browser_fixture.py` and `python tests/browser_regression.py` for intercepted local Chromium fixtures; they require an installed Playwright browser.
+On systems where the default temporary directory is unwritable, set `TEMP` and `TMP` to a writable directory. The unit tests use simulated pages. Run `python tests/browser_fixture.py` and `python tests/browser_regression.py` for intercepted local Chromium fixtures; they require an installed Playwright browser.
 
 ## Search and memory
 
