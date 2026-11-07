@@ -1,6 +1,27 @@
-# Omniscience: Phase 1 research prototype
+# Omniscience
 
-This repository retains `synapse_general.py` and `demo_runner.py`. The generalized agent keeps ambient memory and the existing live entry point. The legacy demo remains an independent, unverified demonstration and its displayed elapsed time is not a controlled benchmark.
+Omniscience is an experimental browser agent and research project exploring how an AI system can **perceive an interface, remember successful procedures, and verify the results of its actions**. Its long-term aim is to make repeated digital tasks more reliable and adaptable by combining procedural memory with semantic understanding and carefully bounded model-assisted recovery.
+
+## The research question
+
+Can an agent learn a browser task, reuse a verified procedure on later attempts, and recover when an interface changes—while measuring task completion, latency, model use, and failure modes?
+
+Omniscience explores a two-path approach:
+
+- **Familiar tasks:** retrieve a previously verified, site-scoped habit and validate its target before using it.
+- **Unfamiliar or changed interfaces:** discover targets through browser semantics and, where explicitly enabled, accept a proposal from a vision provider. Proposed actions still need validation and outcome confirmation.
+
+The broader direction includes a persistent representation of interface objects and state, and experiments with predicting outcomes before actions. These are research goals, not capabilities demonstrated by the current code. Omniscience does not claim human-like understanding or a proven advantage over other agents.
+
+## Current status
+
+The repository is an early prototype. Its implemented verified workflow is limited to search: it discovers or retrieves a search field, checks that the target is actionable and unambiguous, submits the query, and checks for a narrowly defined URL outcome before saving a habit. It also preserves the original ambient-memory extraction, recall, and demonstration entry points. The legacy demo is independent of the verified search workflow; its displayed elapsed time is not a controlled benchmark.
+
+The current vision interface is an opt-in extension point that accepts a caller-supplied provider; no vision model is bundled. The project does not yet provide general-purpose task planning, a persistent visual state graph, predictive simulation, or comprehensive safeguards for sensitive actions. Treat it as a research prototype, not an autonomous production agent.
+
+## How we will evaluate it
+
+Evaluation should compare familiar-task reuse, first-time discovery, and recovery under controlled interface changes using the same tasks and explicit completion criteria. Report successful completion and false positives alongside latency, model calls, cost when known, and failure cases. Use repeatable local fixtures first, then evaluate on held-out sites and realistic workflows. The existing checks are small fixture tests, not evidence of broad reliability or performance gains.
 
 ## Setup and offline checks
 
