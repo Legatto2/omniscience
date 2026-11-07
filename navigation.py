@@ -1,7 +1,7 @@
 """Conservative search execution: unique target, then observable query-specific outcome."""
 from urllib.parse import parse_qs, urlsplit
 
-CANDIDATES = ['role=searchbox', 'role=combobox[name*="search" i]',
+CANDIDATES = ['role=searchbox', 'role=textbox[name*="search" i]', 'role=combobox[name*="search" i]',
               'input[type="search"]', 'input[name*="search" i]',
               'input[placeholder*="search" i]', 'input[aria-label*="search" i]']
 
@@ -23,7 +23,7 @@ def execute_search(page, selectors, query, timeout_ms=3000, fallback=None):
             if loc.count() != 1 or not loc.is_visible() or not loc.is_enabled() or not loc.is_editable():
                 continue
             # A cached arbitrary input must still be semantically recognizable as search.
-            if not loc.evaluate("el => el.matches('input,textarea') && (el.type === 'search' || /search/i.test([el.getAttribute('role'),el.name,el.placeholder,el.getAttribute('aria-label'),el.getAttribute('title')].join(' ')))"):
+            if not loc.evaluate("el => el.matches('input,textarea') && (el.type === 'search' || /search/i.test([el.getAttribute('role'),el.name,el.placeholder,el.getAttribute('aria-label'),el.getAttribute('title'), ...Array.from(el.labels || [], label => label.innerText)].join(' ')))"):
                 continue
         except Exception:
             continue

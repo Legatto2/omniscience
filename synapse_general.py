@@ -4,6 +4,7 @@ import json
 import time
 from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass, asdict
+from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright, Page
 try:
     import google.generativeai as genai
@@ -119,6 +120,10 @@ class UniversalUINavigator:
     def find_and_interact(self, page: Page, domain: str, intent: str, value_to_type: Optional[str] = None) -> bool:
         if intent != "search" or not value_to_type:
             return False
+        # Only use a habit for the origin actually open, including its port.
+        origin = urlsplit(page.url)
+        if origin.scheme not in ("http", "https") or origin.netloc.lower() != domain.lower():
+            return False
         selector = execute_search(page, [self.store.get(domain, intent), *CANDIDATES], value_to_type, fallback=self.vision_provider if self.vision_enabled else None)
         if selector is None:
             return False
@@ -162,11 +167,11 @@ class SynapseAgent:
             time.sleep(1)
 
             # 4. Open the target website (works with ANY site: target.com, ebay.com, wikipedia.org, etc.)
-            domain = target_url.replace("https://", "").replace("http://", "").split("/")[0]
             page = context.new_page()
             print(f"[{CYAN}NAVIGATING{RESET}] Loading '{target_url}'...")
             page.goto(target_url)
             page.wait_for_load_state("domcontentloaded")
+            domain = urlsplit(page.url).netloc
 
             # 5. Extract target search term from memory based on instruction
             recalled = self.memory.recall(user_instruction)
