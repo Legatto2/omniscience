@@ -1,0 +1,5 @@
+{
+  "www.ebay.com": {
+    "search": "role=combobox[name*=\"search\" i]"
+  }
+}
