@@ -226,8 +226,7 @@ def run_polished_demo():
         print(f"\n{BOLD}{GREEN}================================================================={RESET}")
         print(f"{BOLD}{GREEN}✓ EXECUTION COMPLETE{RESET}")
         print(f"• Total Cognitive Latency: {BOLD}{total_latency:.2f} ms{RESET}")
-        print(f"• Cloud Tokens Burned:     {BOLD}0 tokens ($0.0000){RESET}")
-        print(f"• Traditional VLM Speed:   ~6,500 ms ($0.0500 per step)")
+        print("• Comparison against other approaches was not measured.")
         print(f"{BOLD}{GREEN}================================================================={RESET}\n")
 
         time.sleep(5)
