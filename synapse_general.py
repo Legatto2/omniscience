@@ -4,8 +4,15 @@ import json
 import time
 from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass, asdict
+from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright, Page
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
+
+from habits_store import HabitStore
+from navigation import CANDIDATES, execute_search
 
 # Terminal formatting
 GREEN = "\033[92m"
@@ -16,7 +23,7 @@ RESET = "\033[0m"
 
 # Load Gemini API Key
 GEMINI_KEY = os.getenv("GEMINI_API_KEY", "")
-if GEMINI_KEY:
+if GEMINI_KEY and genai is not None:
     genai.configure(api_key=GEMINI_KEY)
 
 # =====================================================================
@@ -48,7 +55,7 @@ class GeneralizedMemory:
         """Extracts arbitrary entities using Gemini structured JSON generation."""
         print(f"{YELLOW}🎙️ Ambient Ingestion processing: '{raw_text}'{RESET}")
         
-        if GEMINI_KEY:
+        if GEMINI_KEY and genai is not None:
             try:
                 model = genai.GenerativeModel("gemini-1.5-flash")
                 prompt = f"""
@@ -98,85 +105,30 @@ class GeneralizedMemory:
 # 2. GENERALIZED DOM & ACCESSIBILITY COGNITION (WORKS ON ANY WEBSITE)
 # =====================================================================
 class UniversalUINavigator:
-    """
-    Navigates ANY website using the Chrome Accessibility Tree (AXTree)
-    and maintains a persistent System 1 muscle memory cache (habits.json).
-    """
-    def __init__(self, cache_file="habits.json"):
+    """Search using verified cached or semantically discovered locators."""
+    def __init__(self, cache_file="habits.json", *, vision_enabled=False, vision_provider=None):
+        self.vision_enabled = vision_enabled
+        self.vision_provider = vision_provider
         self.cache_file = cache_file
-        self.habits = self._load_habits()
-
-    def _load_habits(self) -> Dict[str, Any]:
-        if os.path.exists(self.cache_file):
-            try:
-                with open(self.cache_file, "r") as f:
-                    return json.load(f)
-            except Exception:
-                return {}
-        return {}
+        self.store = HabitStore(cache_file)
+        self.habits = self.store.data
 
     def _save_habit(self, domain: str, intent: str, selector: str):
-        if domain not in self.habits:
-            self.habits[domain] = {}
-        self.habits[domain][intent] = selector
-        with open(self.cache_file, "w") as f:
-            json.dump(self.habits, f, indent=2)
+        self.store.save(domain, intent, selector)
+        self.habits = self.store.data
 
     def find_and_interact(self, page: Page, domain: str, intent: str, value_to_type: Optional[str] = None) -> bool:
-        """
-        1. Fast Path (System 1): Checks local habits.json (<1ms).
-        2. Medium Path: Inspects the Chrome Accessibility Tree dynamically across ANY site (20-50ms).
-        3. Fallback (System 2): Takes screenshot and asks Gemini Vision.
-        """
-        # --- 1. SYSTEM 1: HABIT LOOKUP ---
-        if domain in self.habits and intent in self.habits[domain]:
-            cached_selector = self.habits[domain][intent]
-            try:
-                page.locator(cached_selector).first.click(timeout=1500)
-                if value_to_type:
-                    page.locator(cached_selector).first.fill(value_to_type)
-                    page.keyboard.press("Enter")
-                print(f"[{GREEN}SYSTEM 1 HABIT HIT{RESET}] Used cached muscle memory for '{domain}' in 0.2ms.")
-                return True
-            except Exception:
-                # If cached selector failed, site changed; fall through to AXTree
-                pass
-
-        # --- 2. ACCESSIBILITY TREE DYNAMIC DISCOVERY (ANY WEBSITE) ---
-        print(f"[{CYAN}SYSTEM 2 DYNAMIC DISCOVERY{RESET}] Inspecting Chrome Accessibility Tree for: '{intent}'...")
-        
-        target_selector = None
-        if intent == "search":
-            # Universal accessibility targets for search boxes across all web standards
-            candidates = [
-                'role=searchbox',
-                'role=combobox[name*="search" i]',
-                'input[type="search"]',
-                'input[name*="search" i]',
-                'input[placeholder*="search" i]',
-                'input[aria-label*="search" i]',
-                'input[type="text"]' # Fallback
-            ]
-            for cand in candidates:
-                loc = page.locator(cand).first
-                if loc.count() > 0 and loc.is_visible():
-                    target_selector = cand
-                    break
-
-        if target_selector:
-            print(f"[{GREEN}AXTREE RESOLVED{RESET}] Found dynamic element matching: '{target_selector}'")
-            loc = page.locator(target_selector).first
-            loc.click()
-            if value_to_type:
-                loc.fill(value_to_type)
-                page.keyboard.press("Enter")
-
-            # HABIT COMPILATION: Save for all future visits
-            self._save_habit(domain, intent, target_selector)
-            print(f"[{YELLOW}HABIT COMPILED{RESET}] Saved '{target_selector}' into habits.json for '{domain}'.")
-            return True
-
-        return False
+        if intent != "search" or not value_to_type:
+            return False
+        # Only use a habit for the origin actually open, including its port.
+        origin = urlsplit(page.url)
+        if origin.scheme not in ("http", "https") or origin.netloc.lower() != domain.lower():
+            return False
+        selector = execute_search(page, [self.store.get(domain, intent), *CANDIDATES], value_to_type, fallback=self.vision_provider if self.vision_enabled else None)
+        if selector is None:
+            return False
+        self._save_habit(domain, intent, selector)
+        return True
 
 
 # =====================================================================
@@ -210,16 +162,16 @@ class SynapseAgent:
 
             # 3. Reflex Tab Close (Standard System 1 OS muscle memory)
             print(f"\n{BOLD}[USER COMMAND RECEIVED]: \"{user_instruction}\"{RESET}")
-            print(f"[{GREEN}SYSTEM 1 REFLEX{RESET}] Firing 'Ctrl+w' / 'Cmd+w' via OS keyboard driver (0ms compute).")
+            print(f"[{GREEN}SYSTEM 1 REFLEX{RESET}] Closing the initial tab.")
             page.keyboard.press("Control+w" if sys.platform != "darwin" else "Meta+w")
             time.sleep(1)
 
             # 4. Open the target website (works with ANY site: target.com, ebay.com, wikipedia.org, etc.)
-            domain = target_url.replace("https://", "").replace("http://", "").split("/")[0]
             page = context.new_page()
             print(f"[{CYAN}NAVIGATING{RESET}] Loading '{target_url}'...")
             page.goto(target_url)
             page.wait_for_load_state("domcontentloaded")
+            domain = urlsplit(page.url).netloc
 
             # 5. Extract target search term from memory based on instruction
             recalled = self.memory.recall(user_instruction)
@@ -234,7 +186,7 @@ class SynapseAgent:
             if success:
                 print(f"\n{BOLD}{GREEN}✓ ACTION EXECUTED DYNAMICALLY IN {dt:.2f} ms{RESET}")
             else:
-                print(f"\n{BOLD}\033[91m✗ Element could not be found via AXTree. Calling Gemini Vision...{RESET}")
+                print(f"\n{BOLD}\033[91m✗ Search could not be verified.{RESET}")
 
             time.sleep(5)
             browser.close()
